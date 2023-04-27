@@ -36,16 +36,22 @@ M.refresh = function ()
     for _, match, metadata in query:iter_matches(root, bufnr, win_start, win_end) do
         for id, node in pairs(match) do
             local start_row, _, end_row, _ = unpack(vim.tbl_extend("force", { node:range() }, (metadata[id] or {}).range or {}))
+
+            local start_line = vim.api.nvim_buf_get_lines(bufnr, start_row, start_row + 1, false)[1]
+            local _, padding = start_line:find "^ +"
+            local padding_left = math.max((padding or 0) - left_offset, 0)
+
             local max_line_length = 0
             for i = start_row, end_row do
                 local line = vim.fn.getline(i + 1)
                 local len = vim.fn.strwidth(line)
                 max_line_length = math.max(max_line_length, len)
             end
+
             for i = start_row, end_row - 1 do
                 local line = vim.fn.getline(i + 1)
                 local len = vim.fn.strwidth(line)
-                vim.api.nvim_buf_add_highlight(bufnr, M.namespace, M.config.hl_group, i, 0, -1)
+                vim.api.nvim_buf_add_highlight(bufnr, M.namespace, M.config.hl_group, i, padding_left, -1)
                 vim.api.nvim_buf_set_extmark(bufnr, M.namespace, i, 0, {
                     virt_text = { { string.rep(" ", max_line_length - len - left_offset + M.config.padding_right), M.config.hl_group } },
                     virt_text_win_col = len + left_offset,
