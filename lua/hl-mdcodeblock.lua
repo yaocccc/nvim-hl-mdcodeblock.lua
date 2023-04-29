@@ -11,20 +11,32 @@ M.config = {
         "TextChangedI",
         "InsertLeave",
         "WinScrolled",
+        "BufEnter",
     },
     padding_right = 4,            -- always append 4 space at lineend
     timer_delay = 20,             -- refresh delay(ms)
+    query_by_ft = {
+        markdown = {              -- filetype
+            'markdown',           -- parser
+            '(fenced_code_block) @codeblock', -- query
+        },
+        rmd = {                   -- filetype
+            'markdown',           -- parser
+            '(fenced_code_block) @codeblock', -- query
+        },
+    },
 }
 
 M.refresh = function ()
-    -- just for markdown
-    if vim.bo.filetype ~= 'markdown' then return end
+    local language = vim.bo.filetype
+    local query = M.config.query_by_ft[language]
+    if query == nil then return end
 
     local bufnr = vim.api.nvim_get_current_buf()
     local language_tree = vim.treesitter.get_parser()
     local syntax_tree = language_tree:parse()
     local root = syntax_tree[1]:root()
-    local query = vim.treesitter.query.parse('markdown', '(fenced_code_block) @codeblock')
+    local query = vim.treesitter.query.parse(query[1], query[2])
     local win_view = vim.fn.winsaveview()
     local left_offset = win_view.leftcol
     local win_start = win_view.topline - 20

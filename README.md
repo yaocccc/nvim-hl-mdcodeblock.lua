@@ -39,8 +39,19 @@ JUST DO HIGHLIGHT MARKDOWN CODEBLOCK
             "TextChangedI",
             "InsertLeave",
             "WinScrolled",
+            "BufEnter",
         },
         padding_right = 4,          -- always append 4 space at lineend
         timer_delay = 20,           -- refresh delay(ms)
+        query_by_ft = {             -- special parser query by filetype
+            markdown = {            -- filetype
+                'markdown',         -- parser
+                '(fenced_code_block) @codeblock', -- query
+            },
+            rmd = {                 -- filetype
+                'markdown',         -- parser
+                '(fenced_code_block) @codeblock', -- query
+            },
+        },
     }
 ```
