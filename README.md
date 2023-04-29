@@ -53,5 +53,7 @@ JUST DO HIGHLIGHT MARKDOWN CODEBLOCK
                 '(fenced_code_block) @codeblock', -- query
             },
         },
+        minumum_len = 100,            -- minimum len to highlight (number | function)
+        -- minumum_len = function () return math.floor(vim.o.columns * 0.8) end
     }
 ```

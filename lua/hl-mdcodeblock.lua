@@ -25,6 +25,10 @@ M.config = {
             '(fenced_code_block) @codeblock', -- query
         },
     },
+    minumum_len = 100,            -- minimum len to highlight (number | function)
+    -- minumum_len = function ()
+    --     return math.floor(vim.o.columns * 0.9)
+    -- end
 }
 
 M.refresh = function ()
@@ -41,6 +45,8 @@ M.refresh = function ()
     local left_offset = win_view.leftcol
     local win_start = win_view.topline - 20
     local win_end = win_start + vim.fn.winheight(0) + 20
+    local minumum_len = M.config.minumum_len
+    if type(minumum_len) == "function" then minumum_len = minumum_len() end
     if win_start < 0 then win_start = 0 end
 
     vim.api.nvim_buf_clear_namespace(bufnr, M.namespace, 0, -1)
@@ -59,6 +65,7 @@ M.refresh = function ()
                 local len = vim.fn.strwidth(line)
                 max_line_length = math.max(max_line_length, len)
             end
+            max_line_length = math.max(max_line_length, minumum_len)
 
             for i = start_row, end_row - 1 do
                 local line = vim.fn.getline(i + 1)
