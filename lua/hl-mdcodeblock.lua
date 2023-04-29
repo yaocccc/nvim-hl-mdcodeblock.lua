@@ -27,7 +27,7 @@ M.config = {
     },
     minumum_len = 100,            -- minimum len to highlight (number | function)
     -- minumum_len = function ()
-    --     return math.floor(vim.o.columns * 0.9)
+    --     return math.max(math.floor(vim.api.nvim_win_get_width(0) * 0.8), 100)
     -- end
 }
 
