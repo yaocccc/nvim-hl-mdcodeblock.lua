@@ -1,9 +1,9 @@
 local M = {}
 
 M.namespace = vim.api.nvim_create_namespace "hlmdcb_namespace"
-
 M.config = {
-    hl_group = "MDCodeBlock",     -- default highlight group
+    hl_group = "MDCodeBlock",     -- highlight group
+    bg = "#282828",               -- default background color for hl_group
     events = {                    -- refresh event
         "FileChangedShellPost",
         "Syntax",
@@ -25,7 +25,7 @@ M.config = {
             '(fenced_code_block) @codeblock', -- query
         },
     },
-    minumum_len = 100,            -- minimum len to highlight (number | function)
+    minumum_len = 60,            -- minimum len to highlight (number | function)
     -- minumum_len = function ()
     --     return math.max(math.floor(vim.api.nvim_win_get_width(0) * 0.8), 100)
     -- end
@@ -33,14 +33,14 @@ M.config = {
 
 M.refresh = function ()
     local language = vim.bo.filetype
-    local query = M.config.query_by_ft[language]
-    if query == nil then return end
+    local queryctx = M.config.query_by_ft[language]
+    if queryctx == nil then return end
 
     local bufnr = vim.api.nvim_get_current_buf()
     local language_tree = vim.treesitter.get_parser()
     local syntax_tree = language_tree:parse()
     local root = syntax_tree[1]:root()
-    local query = vim.treesitter.query.parse(query[1], query[2])
+    local query = vim.treesitter.query.parse(queryctx[1], queryctx[2])
     local win_view = vim.fn.winsaveview()
     local left_offset = win_view.leftcol
     local win_start = win_view.topline - 20
@@ -52,7 +52,8 @@ M.refresh = function ()
     vim.api.nvim_buf_clear_namespace(bufnr, M.namespace, 0, -1)
 
     for _, match, metadata in query:iter_matches(root, bufnr, win_start, win_end) do
-        for id, node in pairs(match) do
+        for id, nodes in pairs(match) do
+            local node = type(nodes) == "table" and nodes[1] or nodes
             local start_row, _, end_row, _ = unpack(vim.tbl_extend("force", { node:range() }, (metadata[id] or {}).range or {}))
 
             local start_line = vim.api.nvim_buf_get_lines(bufnr, start_row, start_row + 1, false)[1]
@@ -84,6 +85,9 @@ end
 M.setup = function (config)
     config = config or {}
     M.config = vim.tbl_deep_extend("force", M.config, config)
+
+    local hl = vim.api.nvim_get_hl(0, { name = M.config.hl_group })
+    if vim.tbl_isempty(hl) then vim.api.nvim_set_hl(0, M.config.hl_group, { default = true, bg = M.config.bg }) end
 
     local timer_id = -1
     vim.api.nvim_create_autocmd(M.config.events, {
